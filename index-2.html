@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Pencil Tool</title>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+<h3>Pencil Tool</h3>
+<input type="file" id="pdfFile"><br>
+<input type="text" id="numberText" placeholder="Engine Number"><br>
+<button onclick="makeScratch()">Preview</button>
+<button onclick="generatePDF()">Download PDF</button>
+<img id="preview" style="width:300px"><br>
+<canvas id="scratchCanvas" style="display:none"></canvas>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let pdfBytes, pdfDoc, viewport;
+
+document.getElementById('pdfFile').addEventListener('change', async (e)=>{
+  let file = e.target.files[0];
+  pdfBytes = await file.arrayBuffer();
+  pdfDoc = await pdfjsLib.getDocument({data:pdfBytes}).promise;
+  let page = await pdfDoc.getPage(1);
+  viewport = page.getViewport({scale:1.5});
+});
+
+function makeScratch(){
+  let text = document.getElementById('numberText').value;
+  let c = document.getElementById('scratchCanvas');
+  let ctx = c.getContext('2d');
+
+  c.width = 450;
+  c.height = 600;
+
+  for(let i=0;i<2500;i++){
+    ctx.fillStyle = "rgba(0,0,0,"+(Math.random()*0.08)+")";
+    ctx.beginPath();
+    ctx.ellipse(Math.random()*c.width,Math.random()*c.height,Math.random()*12,Math.random()*5,0,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.save();
+  ctx.translate(c.width/2,c.height/2);
+  ctx.rotate(90*Math.PI/180);
+  ctx.font="900 42px Arial Black";
+  ctx.fillStyle="black";
+
+  for(let i=0;i<6;i++){
+    ctx.fillText(text,(Math.random()-0.5)*2,(Math.random()-0.5)*2);
+  }
+
+  ctx.restore();
+
+  document.getElementById('preview').src = c.toDataURL();
+  return c.toDataURL();
+}
+
+async function generatePDF(){
+  let pdfDocLib = await PDFLib.PDFDocument.load(pdfBytes);
+  let page = pdfDocLib.getPages()[0];
+  let img = await pdfDocLib.embedPng(makeScratch());
+  page.drawImage(img,{x:100,y:100,width:150,height:500});
+  let pdfBytesOut = await pdfDocLib.save();
+  let blob = new Blob([pdfBytesOut], {type:"application/pdf"});
+  let link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = "inspection.pdf";
+  link.click();
+}
+</script>
+</body>
+</html>
