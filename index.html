@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inspection Certificate Pencil Scratch Tool</title>
+
+  <!-- Libraries loaded from CDN. Works directly on GitHub Pages. -->
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #f4f3ef;
+      --card: #ffffff;
+      --ink: #171717;
+      --muted: #6f6f6f;
+      --line: #dedbd3;
+      --brand: #111111;
+      --blue: #0b57d0;
+      --green: #136f32;
+      --red: #9b111e;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    .wrap { max-width: 1280px; margin: auto; padding: 22px; }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .sub { margin: 0; color: var(--muted); line-height: 1.45; max-width: 780px; }
+    .badge {
+      background: #111;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.04);
+    }
+
+    label {
+      font-weight: 800;
+      font-size: 13px;
+      display: block;
+      margin-top: 14px;
+      margin-bottom: 7px;
+    }
+
+    input, select, button { font: inherit; }
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      border: 1px solid #cfcfcf;
+      border-radius: 12px;
+      padding: 11px 12px;
+      background: #fff;
+      outline: none;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(11, 87, 208, .10);
+    }
+    input[type="file"] { width: 100%; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hint { font-size: 12px; color: var(--muted); line-height: 1.38; margin-top: 7px; }
+
+    button {
+      border: 0;
+      border-radius: 13px;
+      padding: 12px 14px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .05s ease, opacity .15s ease;
+    }
+    button:active { transform: scale(.99); }
+    .primary { background: var(--brand); color: #fff; width: 100%; margin-top: 16px; }
+    .secondary { background: #eeeeee; color: #111; width: 100%; margin-top: 10px; }
+    .danger { background: #fff2f2; color: var(--red); border: 1px solid #ffd1d1; width: 100%; margin-top: 10px; }
+    .mini { padding: 9px 10px; border-radius: 11px; background:#f0f0f0; color:#111; font-size:12px; }
+
+    .toolbar {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      margin-bottom: 12px;
+    }
+
+    #stageWrap {
+      overflow: auto;
+      max-height: 82vh;
+      background: #e6e4dd;
+      border-radius: 16px;
+      padding: 18px;
+      text-align: center;
+      position: relative;
+      border: 1px solid #d6d2c8;
+    }
+    .pageBox {
+      position: relative;
+      display: inline-block;
+      background: white;
+      box-shadow: 0 4px 22px rgba(0,0,0,.18);
+    }
+    .pageCanvas { display: block; }
+
+    .overlay {
+      position: absolute;
+      border: 2px dashed var(--blue);
+      background: rgba(11,87,208,.08);
+      box-sizing: border-box;
+      cursor: move;
+      touch-action: none;
+    }
+    .overlay::before {
+      content: "scratch placement";
+      position: absolute;
+      left: 6px;
+      top: 6px;
+      background: var(--blue);
+      color: #fff;
+      font-size: 11px;
+      padding: 3px 6px;
+      border-radius: 999px;
+      font-weight: 800;
+    }
+    .handle {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      right: -9px;
+      bottom: -9px;
+      background: var(--blue);
+      border: 2px solid #fff;
+      border-radius: 50%;
+      cursor: nwse-resize;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+
+    .previewImg {
+      max-width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      margin-top: 10px;
+      background: white;
+    }
+    .status {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--blue);
+      min-height: 18px;
+      font-weight: 700;
+    }
+    .ok { color: var(--green); }
+    .small { font-size: 12px; color: var(--muted); }
+    .pill {
+      display:inline-block;
+      background:#f1f1f1;
+      border-radius:999px;
+      padding:5px 9px;
+      font-size:12px;
+      margin-top:8px;
+      color:#444;
+      font-weight:700;
+    }
+    .savedBox {
+      border:1px solid #e2e2e2;
+      background:#fafafa;
+      border-radius:12px;
+      padding:10px;
+      margin-top:12px;
+      font-size:12px;
+      color:#555;
+      line-height:1.45;
+    }
+
+    @media(max-width: 920px) {
+      .grid { grid-template-columns: 1fr; }
+      .wrap { padding: 14px; }
+      #stageWrap { max-height: none; }
+      .top { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Inspection Certificate Pencil Scratch Tool</h1>
+        <p class="sub">Upload the inspection certificate PDF, enter the engine/chassis number, drag the placement box to the pencil-print area, and download the final PDF. All processing happens inside your browser.</p>
+      </div>
+      <div class="badge">GitHub Pages Ready</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <label>1. Upload Inspection Certificate PDF</label>
+        <input id="pdfFile" type="file" accept="application/pdf" />
+        <div class="hint">Your PDF stays on your computer. It is not uploaded to any server.</div>
+
+        <label>2. Enter Engine / Chassis Number</label>
+        <input id="numberText" type="text" placeholder="Example: AK5CT2401098" autocomplete="off" />
+
+        <div class="row">
+          <div>
+            <label>Page Number</label>
+            <input id="pageNo" type="number" min="1" value="1" />
+          </div>
+          <div>
+            <label>Text Direction</label>
+            <select id="rotation">
+              <option value="90">Vertical Down</option>
+              <option value="-90">Vertical Up</option>
+              <option value="0">Horizontal</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Font Size</label>
+            <input id="fontSize" type="number" min="10" max="90" value="38" />
+          </div>
+          <div>
+            <label>Darkness</label>
+            <input id="darkness" type="number" min="10" max="100" value="78" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Scratch Width</label>
+            <input id="scratchW" type="number" min="100" max="1400" value="430" />
+          </div>
+          <div>
+            <label>Scratch Height</label>
+            <input id="scratchH" type="number" min="40" max="900" value="105" />
+          </div>
+        </div>
+
+        <button class="secondary" id="makePreview">Refresh Pencil Scratch Preview</button>
+        <canvas id="scratchCanvas" style="display:none"></canvas>
+        <img id="scratchPreview" class="previewImg" alt="Pencil scratch preview" />
+
+        <button class="primary" id="downloadBtn">Generate Final PDF</button>
+        <button class="danger" id="resetBtn">Reset Placement Box</button>
+
+        <div class="status" id="status"></div>
+        <div class="pill">Tip: first align once, then reuse the saved placement for same certificate format.</div>
+
+        <div class="savedBox" id="savedBox">Saved placement: not set yet. Once you move the box, the position will be remembered on this browser.</div>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <button class="mini" id="zoomOut">− Zoom</button>
+          <button class="mini" id="zoomIn">+ Zoom</button>
+          <span class="small">Use the blue rectangle to place the pencil scratch exactly inside the certificate box.</span>
+        </div>
+        <div id="stageWrap"><div class="small">Upload a PDF to preview the certificate here.</div></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const $ = (id) => document.getElementById(id);
+  let pdfBytes = null;
+  let pdfDocJS = null;
+  let pageViewport = null;
+  let scale = 1.35;
+  let overlay = null;
+  let pageBox = null;
+  let canvas = null;
+  const STORAGE_KEY = 'inspection-pencil-placement-v1';
+
+  function setStatus(text, ok = false) {
+    $('status').textContent = text || '';
+    $('status').className = ok ? 'status ok' : 'status';
+  }
+
+  function rand(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  function sanitizeNumber(value) {
+    return (value || '').toUpperCase().replace(/[^A-Z0-9\-\/]/g, '').slice(0, 40);
+  }
+
+  function makeScratch() {
+    const text = sanitizeNumber($('numberText').value.trim()) || 'AK5CT2401098';
+    $('numberText').value = text;
+
+    const w = Number($('scratchW').value) || 430;
+    const h = Number($('scratchH').value) || 105;
+    const darkness = (Number($('darkness').value) || 78) / 100;
+    const fs = Number($('fontSize').value) || 38;
+    const rotation = (Number($('rotation').value) || 0) * Math.PI / 180;
+
+    const c = $('scratchCanvas');
+    const ctx = c.getContext('2d');
+    c.width = w;
+    c.height = h;
+    ctx.clearRect(0, 0, w, h);
+
+    // Grey base smudges like pencil rubbing.
+    ctx.fillStyle = `rgba(35,35,35,${0.25 * darkness})`;
+    for (let i = 0; i < 900; i++) {
+      ctx.beginPath();
+      ctx.ellipse(rand(0, w), rand(0, h), rand(1, 9), rand(0.5, 4.5), rand(0, Math.PI), 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Random scratch lines.
+    for (let i = 0; i < 110; i++) {
+      ctx.strokeStyle = `rgba(0,0,0,${rand(0.045, 0.13) * darkness})`;
+      ctx.lineWidth = rand(0.6, 2.8);
+      ctx.beginPath();
+      ctx.moveTo(rand(0, w), rand(0, h));
+      ctx.lineTo(rand(0, w), rand(0, h));
+      ctx.stroke();
+    }
+
+    // Number impression.
+    ctx.save();
+    ctx.translate(w / 2, h / 2);
+    ctx.rotate(rotation);
+    ctx.font = `900 ${fs}px Arial Black, Impact, Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    for (let i = 0; i < 6; i++) {
+      ctx.fillStyle = `rgba(0,0,0,${(0.34 + i * 0.045) * darkness})`;
+      ctx.fillText(text, rand(-2.2, 2.2), rand(-2.2, 2.2));
+    }
+
+    // Broken texture cutouts.
+    ctx.globalCompositeOperation = 'destination-out';
+    for (let i = 0; i < 180; i++) {
+      ctx.fillStyle = `rgba(0,0,0,${rand(0.045, 0.18)})`;
+      ctx.fillRect(rand(-h, w), rand(-w, h), rand(1, 13), rand(1, 5));
+    }
+    ctx.restore();
+    ctx.globalCompositeOperation = 'source-over';
+
+    const url = c.toDataURL('image/png');
+    $('scratchPreview').src = url;
+    return url;
+  }
+
+  function getSavedPlacement() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); }
+    catch { return null; }
+  }
+
+  function savePlacement() {
+    if (!overlay || !pageBox) return;
+    const pos = {
+      xPct: overlay.offsetLeft / pageBox.clientWidth,
+      yPct: overlay.offsetTop / pageBox.clientHeight,
+      wPct: overlay.offsetWidth / pageBox.clientWidth,
+      hPct: overlay.offsetHeight / pageBox.clientHeight
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(pos));
+    $('savedBox').textContent = `Saved placement: X ${(pos.xPct*100).toFixed(1)}%, Y ${(pos.yPct*100).toFixed(1)}%, W ${(pos.wPct*100).toFixed(1)}%, H ${(pos.hPct*100).toFixed(1)}%.`;
+  }
+
+  function defaultPlacement() {
+    const saved = getSavedPlacement();
+    const W = pageBox.clientWidth;
+    const H = pageBox.clientHeight;
+    if (saved) {
+      $('savedBox').textContent = `Saved placement loaded: X ${(saved.xPct*100).toFixed(1)}%, Y ${(saved.yPct*100).toFixed(1)}%, W ${(saved.wPct*100).toFixed(1)}%, H ${(saved.hPct*100).toFixed(1)}%.`;
+      return { x: saved.xPct * W, y: saved.yPct * H, w: saved.wPct * W, h: saved.hPct * H };
+    }
+    return { x: W * 0.56, y: H * 0.14, w: W * 0.25, h: H * 0.64 };
+  }
+
+  function createOverlay(pos) {
+    overlay = document.createElement('div');
+    overlay.className = 'overlay';
+    overlay.innerHTML = '<div class="handle"></div>';
+    pageBox.appendChild(overlay);
+
+    function apply(p) {
+      const maxX = pageBox.clientWidth - Math.max(30, p.w);
+      const maxY = pageBox.clientHeight - Math.max(30, p.h);
+      overlay.style.left = Math.max(0, Math.min(p.x, maxX)) + 'px';
+      overlay.style.top = Math.max(0, Math.min(p.y, maxY)) + 'px';
+      overlay.style.width = Math.max(30, p.w) + 'px';
+      overlay.style.height = Math.max(30, p.h) + 'px';
+    }
+
+    apply(pos || defaultPlacement());
+
+    let mode = null, start = {}, orig = {};
+    overlay.addEventListener('pointerdown', (e) => {
+      mode = e.target.className === 'handle' ? 'resize' : 'move';
+      start = { x: e.clientX, y: e.clientY };
+      orig = { x: overlay.offsetLeft, y: overlay.offsetTop, w: overlay.offsetWidth, h: overlay.offsetHeight };
+      overlay.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+
+    overlay.addEventListener('pointermove', (e) => {
+      if (!mode) return;
+      const dx = e.clientX - start.x;
+      const dy = e.clientY - start.y;
+      if (mode === 'move') apply({ ...orig, x: orig.x + dx, y: orig.y + dy });
+      else apply({ ...orig, w: orig.w + dx, h: orig.h + dy });
+    });
+
+    overlay.addEventListener('pointerup', () => { mode = null; savePlacement(); });
+    overlay.addEventListener('pointercancel', () => { mode = null; savePlacement(); });
+  }
+
+  async function renderPage() {
+    if (!pdfDocJS) return;
+    const pageNumber = Number($('pageNo').value) || 1;
+    const page = await pdfDocJS.getPage(pageNumber);
+    pageViewport = page.getViewport({ scale });
+
+    pageBox = document.createElement('div');
+    pageBox.className = 'pageBox';
+    canvas = document.createElement('canvas');
+    canvas.className = 'pageCanvas';
+    canvas.width = pageViewport.width;
+    canvas.height = pageViewport.height;
+    canvas.style.width = pageViewport.width + 'px';
+    canvas.style.height = pageViewport.height + 'px';
+    pageBox.appendChild(canvas);
+
+    $('stageWrap').innerHTML = '';
+    $('stageWrap').appendChild(pageBox);
+
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport: pageViewport }).promise;
+    createOverlay();
+  }
+
+  $('pdfFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      pdfBytes = await file.arrayBuffer();
+      pdfDocJS = await pdfjsLib.getDocument({ data: pdfBytes.slice(0) }).promise;
+      $('pageNo').max = pdfDocJS.numPages;
+      makeScratch();
+      await renderPage();
+      setStatus('PDF loaded. Drag the blue box to the pencil-print area.', true);
+    } catch (err) {
+      setStatus('Could not load PDF: ' + err.message);
+    }
+  });
+
+  $('makePreview').onclick = makeScratch;
+  ['numberText', 'fontSize', 'darkness', 'scratchW', 'scratchH', 'rotation'].forEach(id => {
+    $(id).addEventListener('input', makeScratch);
+  });
+
+  $('pageNo').addEventListener('change', renderPage);
+
+  $('resetBtn').onclick = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    if (overlay) overlay.remove();
+    if (pageBox) createOverlay(defaultPlacement());
+    $('savedBox').textContent = 'Saved placement cleared. Adjust the blue box again.';
+  };
+
+  $('zoomIn').onclick = async () => { scale = Math.min(2.4, scale + 0.15); await renderPage(); };
+  $('zoomOut').onclick = async () => { scale = Math.max(0.7, scale - 0.15); await renderPage(); };
+
+  $('downloadBtn').onclick = async () => {
+    try {
+      if (!pdfBytes || !overlay) throw new Error('Upload PDF and place the box first.');
+      setStatus('Generating final PDF...');
+
+      const dataUrl = makeScratch();
+      const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes.slice(0));
+      const pageIndex = (Number($('pageNo').value) || 1) - 1;
+      const page = pdfDoc.getPage(pageIndex);
+      const img = await pdfDoc.embedPng(dataUrl);
+
+      const pdfW = page.getWidth();
+      const pdfH = page.getHeight();
+
+      const x = overlay.offsetLeft / pageViewport.width * pdfW;
+      const y = pdfH - ((overlay.offsetTop + overlay.offsetHeight) / pageViewport.height * pdfH);
+      const w = overlay.offsetWidth / pageViewport.width * pdfW;
+      const h = overlay.offsetHeight / pageViewport.height * pdfH;
+
+      page.drawImage(img, { x, y, width: w, height: h });
+
+      const out = await pdfDoc.save();
+      const blob = new Blob([out], { type: 'application/pdf' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'inspection-certificate-pencil-scratch.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setStatus('Done. Final PDF downloaded.', true);
+    } catch (err) {
+      setStatus(err.message);
+    }
+  };
+
+  makeScratch();
+</script>
+</body>
+</html>
