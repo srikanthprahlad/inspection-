@@ -1,46 +1,26 @@
 # Inspection Certificate Pencil Scratch Tool
 
-A single-page website for adding a pencil-scratch style engine/chassis number imprint to an inspection certificate PDF.
+A browser-only tool for dealership inspection certificates.
 
 ## Features
-
-- Upload inspection certificate PDF
-- Enter engine/chassis number
-- Generate pencil-scratch style imprint
-- Drag and resize the imprint placement box
+- Upload PDF
+- Enter chassis/engine number
+- Realistic pencil rubbing / scratch output
+- Drag and resize pencil-print box
+- Auto-place preset for right-side inspection certificate box
 - Download final PDF
-- Works fully in browser
-- No server required
-- GitHub Pages ready
+- Works on GitHub Pages
 
-## How to Use
+## How to use locally
+Open `index.html` in Chrome.
 
-1. Open the website.
-2. Upload the inspection certificate PDF.
-3. Enter the engine/chassis number.
-4. Drag the blue placement box to the pencil-print area.
-5. Click **Generate Final PDF**.
-6. Download the finished certificate.
-
-## Deploy on GitHub Pages
-
-1. Create a new GitHub repository, for example:
-   `inspection-pencil-scratch-tool`
+## GitHub Pages deployment
+1. Create a GitHub repository.
 2. Upload `index.html` and `README.md`.
-3. Go to repository **Settings**.
-4. Open **Pages**.
-5. Under **Build and deployment**, choose:
-   - Source: `Deploy from a branch`
-   - Branch: `main`
-   - Folder: `/root`
-6. Click **Save**.
-7. Your live website will be available at:
-   `https://your-username.github.io/inspection-pencil-scratch-tool/`
+3. Go to Settings > Pages.
+4. Source: Deploy from branch.
+5. Branch: main, folder: /root.
+6. Save and open the generated GitHub Pages link.
 
 ## Privacy
-
-All processing happens locally inside the browser. The PDF is not uploaded to any server.
-
-## Notes
-
-The tool remembers the last placement box position in the same browser, so for repeated dealership certificate formats, you only need to align once.
+All processing happens in the browser. No file is uploaded to a server.
