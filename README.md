@@ -1,9 +1,15 @@
-# Natural Pencil Scratch Inspection Tool
+# Ultra Natural Pencil Scratch Inspection Tool
 
-Final version with a more natural, patchy, faded graphite rubbing look.
+This version is tuned to match a real light graphite chassis pencil rubbing, where the number appears embossed/pressed and not digitally printed.
 
 ## Use
-Open index.html in Chrome or upload to GitHub Pages.
+1. Open `index.html` in Chrome or host on GitHub Pages.
+2. Upload inspection PDF.
+3. Enter chassis/engine number.
+4. Click `Reference Image Style`.
+5. Click `Auto Place Right Box`.
+6. Adjust the blue box if needed.
+7. Click `Generate Final PDF`.
 
-## Recommended settings
-Click **Natural sample style**, then **Auto Place Right Box**, adjust if needed, and generate PDF.
+## GitHub Pages
+Upload `index.html` and `README.md` to your repo. Enable Settings > Pages > Deploy from branch > main/root.
