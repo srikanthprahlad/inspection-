@@ -1,15 +1,21 @@
-# Ultra Natural Pencil Scratch Inspection Tool
+# Thin Line Chassis Pencil Scratch Tool
 
-This version is tuned to match a real light graphite chassis pencil rubbing, where the number appears embossed/pressed and not digitally printed.
+This version makes the chassis number thin and line-based, closer to a real pencil rubbing from raised chassis characters.
 
-## Use
+## How to use
 1. Open `index.html` in Chrome or host on GitHub Pages.
 2. Upload inspection PDF.
 3. Enter chassis/engine number.
-4. Click `Reference Image Style`.
+4. Click `Thin chassis line`.
 5. Click `Auto Place Right Box`.
 6. Adjust the blue box if needed.
 7. Click `Generate Final PDF`.
 
 ## GitHub Pages
-Upload `index.html` and `README.md` to your repo. Enable Settings > Pages > Deploy from branch > main/root.
+Upload `index.html` and `README.md` to a public GitHub repository.
+Go to Settings > Pages > Deploy from branch > main / root.
+
+## Notes
+- Letters are made with thin stroke/edge impression, not bold fill.
+- Increase `Emboss Visibility` if the number is too light.
+- Increase `Line Thinness` if letters still look thick.
